@@ -1,0 +1,30 @@
+# Runs the tests, stamps the service worker's cache version, and publishes to GitHub Pages on every push to master.
+name: Deploy
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: node --test
+      - name: Build the site
+        run: |
+          mkdir _site
+          cp -r index.html style.css sw.js manifest.webmanifest icons src _site/
+          # New cache version on every deploy, so installed apps pick up the update.
+          sed -i "s/^const VERSION = .*/const VERSION = '${GITHUB_SHA::7}';/" _site/sw.js
+      - uses: actions/upload-pages-artifact@v5
+      - id: deployment
+        uses: actions/deploy-pages@v5
