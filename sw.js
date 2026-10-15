@@ -3,7 +3,7 @@ const VERSION = 'v1';
 const FONTS = 'fonts'; // survives app updates
 const FILES = [ // every file the app loads; test/sw.test.mjs checks none is missing
   './', 'index.html', 'style.css', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
-  'src/actions.js', 'src/components.js', 'src/dialogs.js', 'src/lib/diary.js', 'src/lib/food.js', 'src/main.js',
+  'src/actions.js', 'src/components.js', 'src/dialogs.js', 'src/lib/backup.js', 'src/lib/diary.js', 'src/lib/food.js', 'src/lib/numbers.js', 'src/main.js',
   'src/render.js', 'src/scan.js', 'src/state.js', 'src/views/settings.js', 'src/views/stats.js', 'src/views/today.js',
 ];
 

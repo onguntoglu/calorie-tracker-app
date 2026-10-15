@@ -2,8 +2,9 @@
 
 const KEY = 'ct-v1';
 // goal: kcal per day. log: { 'YYYY-MM-DD': [entry] }, keyed by local date (entries: lib/diary.js).
-// foods: products looked up before, by barcode, so adding one again works offline.
-export const DEFAULTS = { theme: 'system', goal: 2000, log: {}, foods: {} };
+// foods: products looked up before, by barcode, so adding one again works offline. weights: { 'YYYY-MM-DD': kg },
+// one weigh-in a day. lastBackup: ms, 0 for never.
+export const DEFAULTS = { theme: 'system', goal: 2000, log: {}, foods: {}, weights: {}, lastBackup: 0 };
 export const state = load();
 
 // tab: the open tab.

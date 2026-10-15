@@ -72,6 +72,7 @@ button:active, .button:active { border-radius: var(--shape-m); }
 button:focus-visible, .button:focus-visible { outline: 3px solid var(--md-secondary); outline-offset: 2px; }
 .icon-btn { width: 48px; min-height: 48px; padding: 0; border-color: transparent; color: var(--md-on-surface-variant); }
 .text { border-color: transparent; padding: 0 12px; }
+.tonal { background: var(--md-secondary-container); color: var(--md-on-secondary-container); border-color: transparent; }
 .danger { color: var(--md-error); border-color: var(--md-outline-variant); }
 .big { min-height: 56px; padding: 0 28px; font: 500 16px/24px var(--font); width: 100%; border-radius: var(--shape-li); }
 .big:active { border-radius: var(--shape-xl); transform: scale(.98); }
@@ -115,12 +116,27 @@ button:focus-visible, .button:focus-visible { outline: 3px solid var(--md-second
   background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
 .avatar svg.i { width: 22px; height: 22px; }
 
+/* charts: hairline grid, 2px lines, 8px dots with a 2px surface ring; text in text colours, never the series colour */
+.plot { margin: 0 0 8px; }
+.chart { display: block; width: 100%; height: auto; background: var(--md-surface-container-low); border-radius: var(--shape-l); touch-action: pan-y; }
+.chart .grid { stroke: var(--md-outline-variant); stroke-width: 1; }
+.chart .cross { stroke: var(--md-on-surface-variant); stroke-width: 1; visibility: hidden; }
+.chart .cross.on { visibility: visible; }
+.chart text { fill: var(--md-on-surface-variant); font: 10px var(--font); font-variant-numeric: tabular-nums; }
+.chart text.end { fill: var(--md-on-surface); font-weight: 600; font-size: 11px; }
+.chart polyline { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart circle { stroke: var(--md-surface-container-low); stroke-width: 2; }
+.chart .hit { fill: transparent; }
+polyline.a { stroke: var(--md-primary); } circle.a { fill: var(--md-primary); } /* one series for now: primary, no chart palette */
+.readout { min-height: 20px; margin: 4px 0 0; font-size: 14px; color: var(--md-on-surface); }
+
 /* ---- settings: outlined text fields, segmented button ---- */
 .field { display: block; margin: 0 0 16px; }
 .field > span { display: block; font: 500 12px/16px var(--font); color: var(--md-on-surface-variant); margin: 0 0 4px 4px; letter-spacing: .5px; }
 input:not([type=checkbox]), textarea, select { display: block; width: 100%; min-height: 56px; padding: 16px; border: 1px solid var(--md-outline); border-radius: var(--shape-xs);
   background: transparent; color: var(--md-on-surface); font: 400 16px/24px var(--font); letter-spacing: .5px; }
 input:focus, textarea:focus, select:focus { outline: none; border: 2px solid var(--md-primary); padding: 15px; }
+input.file { display: none; } /* beats the input:not([type=checkbox]) rule above */
 /* connected button group (Expressive's successor to segmented buttons): pill ends, small inner corners, the selected one morphs round */
 .segmented { display: flex; gap: 2px; margin: 0 0 16px; }
 .segmented button { flex: 1; min-width: 0; min-height: 44px; padding: 0 8px; border: 0; border-radius: var(--shape-s);

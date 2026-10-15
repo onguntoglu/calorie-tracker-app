@@ -1,4 +1,5 @@
-// Shared UI pieces: escaping and formatting, icons and Expressive shapes. No app state.
+// Shared UI pieces: escaping and formatting, icons and Expressive shapes, the chart and dialogs. No app state.
+import { niceTicks } from './lib/numbers.js';
 
 export const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 export const $ = sel => document.querySelector(sel);
@@ -11,6 +12,7 @@ const ICONS = {
   stats: 'M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z',
   settings: 'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z',
   scan: 'M1 21v-5h2v3h3v2H1Zm17 0v-2h3v-3h2v5H18ZM4 18v-12h2v12h-2Zm3 0v-12h1v12h-1Zm3 0v-12h2v12h-2Zm3 0v-12h3v12H13Zm4 0v-12h1v12h-1Zm2 0v-12h1v12h-1ZM1 8v-5h5v2H3v3H1Zm20 0v-3H18v-2h5v5h-2Z',
+  weight: 'M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M12,12c-1.66,0-3-1.34-3-3 s1.34-3,3-3s3,1.34,3,3S13.66,12,12,12z M10,8.5h1v1h-1z M11.5,8.5h1v1h-1z M13,8.5h1v1h-1z',
   check: 'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
   light: 'M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z',
   dark: 'M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z',
@@ -37,11 +39,51 @@ const shape = f => `polygon(${Array.from({ length: 120 }, (_, k) => {
 }).join(', ')})`;
 document.documentElement.style.setProperty('--cookie', shape(a => 46 + 4 * Math.cos(9 * a))); // 9 soft scallops
 
+// SVG line chart. series: [{ pts: [[x, y]], cls: 'a' | 'b', name, open }], open: an x drawn as a hollow dot (still going).
+// Each x gets a hit strip; touching it shows a crosshair and the values below the chart (handlers in actions.js).
+export function chart(series, { x0, x1, ticks = [], y, unit = '', read = String } = {}) {
+  const all = series.flatMap(s => s.pts);
+  if (!all.length) return '<p class="muted">Nothing logged yet.</p>';
+  const yt = niceTicks(...(y ?? [Math.min(...all.map(p => p[1])), Math.max(...all.map(p => p[1]))])), y0 = yt[0], y1 = yt.at(-1);
+  const W = 320, H = 170, L = 34, R = 40, T = 10, B = 24, num = v => fmt(Math.round(v * 10) / 10);
+  const X = x => L + (x - x0) / (x1 - x0 || 1) * (W - L - R), Y = v => T + (y1 - v) / (y1 - y0 || 1) * (H - T - B);
+  const anchor = x => X(x) < L + 16 ? 'start' : X(x) > W - R - 16 ? 'end' : 'middle';
+  const ends = series.filter(s => s.pts.length).map(s => s.pts.reduce((a, b) => b[0] > a[0] ? b : a));
+  const crowded = ends.length > 1 && Math.abs(Y(ends[0][1]) - Y(ends[1][1])) < 12;
+  const xs = [...new Set(all.map(p => p[0]))].sort((a, b) => a - b);
+  const hits = xs.map((x, i) => {
+    const a = i ? (X(xs[i - 1]) + X(x)) / 2 : L, b = i < xs.length - 1 ? (X(x) + X(xs[i + 1])) / 2 : W - R;
+    const vals = series.flatMap(s => s.pts.filter(p => p[0] === x).map(p => `${s.name} ${num(p[1])}${unit}${x === s.open ? ' so far' : ''}`));
+    return `<rect class="hit" x="${a}" y="${T}" width="${b - a}" height="${H - T - B}" data-x="${X(x)}" data-read="${esc(`${read(x)} · ${vals.join(' · ')}`)}"/>`;
+  }).join('');
+  return `<figure class="plot"><svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${esc(series.map(s => s.name).join(', '))}">
+    ${yt.map(v => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 6}" y="${Y(v) + 3}" text-anchor="end">${fmt(v)}</text>`).join('')}
+    ${ticks.filter((t, i, a) => a.findIndex(u => u[0] === t[0]) === i).map(([x, t]) => `<text x="${X(x)}" y="${H - 8}" text-anchor="${anchor(x)}">${esc(t)}</text>`).join('')}
+    ${series.map(s => `<polyline class="${s.cls}" points="${s.pts.filter(p => p[0] !== s.open).map(([x, v]) => `${X(x)},${Y(v)}`).join(' ')}"/>
+      ${s.pts.map(([x, v]) => `<circle class="${s.cls}${x === s.open ? ' open' : ''}" cx="${X(x)}" cy="${Y(v)}" r="4"/>`).join('')}`).join('')}
+    ${crowded ? '' : ends.map(([x, v]) => `<text class="end" x="${X(x) + 7}" y="${Y(v) + 4}">${num(v)}</text>`).join('')}
+    <line class="cross" y1="${T}" y2="${H - B}"/>${hits}</svg>
+    ${series.length > 1 ? `<p class="legend">${series.map(s => `<span><i class="key ${s.cls}"></i>${esc(s.name)}</span>`).join('')}</p>` : ''}
+    <p class="readout"></p></figure>`;
+}
+
 // Theme: system / light / dark, switchable from Today's app bar or Settings.
 export const THEMES = { system: ['system', 'Follow system'], light: ['light', 'Light'], dark: ['dark', 'Dark'] };
 
-// M3 dialog: opens it as filled in; resolves the value of the button that closed it, or null.
+// The share sheet can take files (Chrome on Android): backups can go to Drive, Nextcloud or email.
+export const canShare = (() => { try { return !!navigator.canShare?.({ files: [new File([''], 'b.txt', { type: 'text/plain' })] }); } catch { return false; } })();
+
+// M3 dialog in place of the browser's confirm/prompt. Resolves true/false, or the typed text / null with input.
 export const dlg = $('#dialog');
+export function ask(title, text, ok = 'OK', { danger = false, input = null } = {}) {
+  dlg.innerHTML = `<form method="dialog"><h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ''}
+    ${input ? `<label class="field"><span>${esc(input.label)}</span><input name="v" inputmode="decimal" autocomplete="off" value="${esc(input.value)}"></label>` : ''}
+    <div class="actions"><button class="text ${danger ? 'danger' : ''}" value="ok">${esc(ok)}</button><button class="text" value="">Cancel</button></div></form>`;
+  const closed = dialogValue();
+  if (input) dlg.querySelector('input').select();
+  return closed.then(v => input ? (v === 'ok' ? dlg.querySelector('input').value : null) : v === 'ok');
+}
+// Opens the dialog as filled in; resolves the value of the button that closed it, or null.
 export function dialogValue() {
   dlg.returnValue = '';
   dlg.showModal();
