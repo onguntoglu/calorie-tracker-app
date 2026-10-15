@@ -19,8 +19,10 @@ src/
   main.js              entry point
   state.js             stored data (state) and what's on screen (ui)
   render.js            drawing the screen, moving between tabs, the snackbar
-  actions.js           tap and typing handlers
-  components.js        shared UI pieces: formatting, icons, shapes
+  actions.js           tap and typing handlers: scanning and adding food, editing entries
+  scan.js              camera barcode reading (BarcodeDetector), Open Food Facts lookup
+  dialogs.js           the food dialog: amount and meal
+  components.js        shared UI pieces: formatting, icons, shapes, the dialog
   views/               one module per tab
   lib/                 pure logic without the DOM, tested under node
 test/                  one test file per lib module, plus a check of sw.js

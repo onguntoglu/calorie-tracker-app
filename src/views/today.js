@@ -1,9 +1,7 @@
-// Today tab: kcal left against the daily goal, then the day's meals.
-import { icon, kcal, THEMES, wavyLine } from '../components.js';
+// Today tab: kcal left against the daily goal, the scan button, then the day's meals and what's in them.
+import { esc, fmt, icon, kcal, THEMES, wavyLine } from '../components.js';
 import { state } from '../state.js';
-import { dayKey, total } from '../lib/diary.js';
-
-const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
+import { amount, dayKey, MEALS, total } from '../lib/diary.js';
 
 export function today() {
   const theme = THEMES[state.theme ?? 'system'];
@@ -17,11 +15,15 @@ export function today() {
       <h2>${left < 0 ? `${kcal(-left)} kcal over` : `${kcal(left)} kcal left`}</h2>
       <p class="muted">${kcal(eaten)} of ${kcal(state.goal)} kcal eaten</p>
       ${wavyLine(Math.min(1, eaten / state.goal))}
+      <button class="big" data-scan>${icon('scan')}Scan barcode</button>
     </section>
     <div class="list">${MEALS.map(([k, label]) => {
-      const list = entries.filter(e => e.meal === k);
+      const list = entries.map((e, i) => [e, i]).filter(([e]) => e.meal === k);
       return `<div class="item"><span class="avatar">${icon(k)}</span>
-        <div class="body"><h3>${label}</h3><span class="muted">${list.length ? `${list.length} item${list.length === 1 ? '' : 's'}` : 'Nothing yet'}</span></div>
-        <b>${kcal(total(list))} kcal</b></div>`;
+        <div class="body"><h3>${label}</h3>${list.length ? '' : '<span class="muted">Nothing yet</span>'}</div>
+        <b>${kcal(total(list.map(([e]) => e)))} kcal</b></div>
+        ${list.map(([e, i]) => `<button class="item food" data-entry="${i}">
+          <span class="body"><span>${esc(e.name)}</span><span class="muted">${fmt(e.g)} ${e.unit}</span></span>
+          <span class="muted">${kcal(amount(e))} kcal</span></button>`).join('')}`;
     }).join('')}</div>`;
 }

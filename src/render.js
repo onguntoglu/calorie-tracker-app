@@ -1,6 +1,6 @@
 // Drawing the current screen and moving between tabs; the snackbar.
 import { $, esc, icon } from './components.js';
-import { state, ui } from './state.js';
+import { save, state, ui } from './state.js';
 import { settings } from './views/settings.js';
 import { stats } from './views/stats.js';
 import { today } from './views/today.js';
@@ -21,10 +21,11 @@ function applyTheme() {
 
 export function goTab(t) { ui.tab = t; render(); scrollTo(0, 0); }
 
-// M3 snackbar: a short message at the bottom.
-export function toast(msg) {
+// M3 snackbar: a message, optionally with an Undo action (a snapshot() taken before the change).
+export function toast(msg, { undo } = {}) {
   const t = $('#snack');
-  t.innerHTML = `<span>${esc(msg)}</span>`;
+  t.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button>Undo</button>' : ''}`;
   t.hidden = false;
-  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.hidden = true, 4000);
+  t.onclick = undo && (e => { if (e.target.closest('button')) { t.hidden = true; Object.assign(state, JSON.parse(undo)); save(); render(); } });
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.hidden = true, undo ? 8000 : 4000);
 }
